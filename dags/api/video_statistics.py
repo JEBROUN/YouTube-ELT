@@ -1,16 +1,21 @@
 import requests
 import json
-
-import os
-from dotenv import load_dotenv
 from datetime import date
 
-load_dotenv(dotenv_path="./.env")
-API_KEY = os.getenv("API_KEY")
+#import os
+#from dotenv import load_dotenv
+#load_dotenv(dotenv_path="./.env")
 
-#CHANNEL_HANDLE = "MrBeast"
+from airflow.decorators import task
+from airflow.models import Variable 
+
+#API_KEY = os.getenv("API_KEY")
+API_KEY = Variable.get("API_KEY")
+CHANNEL_HANDLE = Variable.get("CHANNEL_HANDLE")
+
 maxResults = 50
 
+@task
 def get_playlist_id():
 
     try:     
@@ -27,8 +32,7 @@ def get_playlist_id():
     except requests.exceptions.RequestException as e:
         raise e
 
-#playlistId = get_playlist_id()
-
+@task
 def get_video_id(playlistId):
 
     video_ids = []
@@ -54,7 +58,7 @@ def get_video_id(playlistId):
     except requests.exceptions.RequestException as e:
         raise e
 
-
+@task
 def extract_video_data(video_ids):
     extracted_data = []
     def batch_list(video_id_list , batch_size):
@@ -90,7 +94,7 @@ def extract_video_data(video_ids):
 
     except requests.exceptions.RequestException as e:
         raise e
-
+@task
 def save_to_json(extracted_data):
     file_path = f"./data/Youtube_data_{date.today()}.json"
 
@@ -98,11 +102,11 @@ def save_to_json(extracted_data):
         json.dump(extracted_data, json_outfile, indent=4, ensure_ascii=False)
 
 
-if __name__ == "__main__" :
-    playlistId = get_playlist_id()
-    video_ids = get_video_id(playlistId)
-    video_data = extract_video_data(video_ids)
-    save_to_json(video_data)
+#if __name__ == "__main__" :
+#    playlistId = get_playlist_id()
+#    video_ids = get_video_id(playlistId)
+#    video_data = extract_video_data(video_ids)
+#    save_to_json(video_data)
 
 
 
