@@ -10,6 +10,8 @@ from api.video_statistics import (
     save_to_json
 )
 
+from datawarehouse.dwh import staging_table, core_table
+
 # Define the local timezone
 local_tz = pendulum.timezone("Europe/Paris")
 
@@ -42,4 +44,20 @@ with DAG(
 
     playlistId >> video_ids >> video_data >> save_to_json_task
 
+
+# DAG 2: update_db
+with DAG(
+    dag_id="update_db",
+    default_args=default_args,
+    description="DAG to process JSON file and insert data into both staging and core schemas",
+    catchup=False,
+    schedule="0 20 * * *",
+) as dag_update:
+
+    # Define tasks
+    update_staging = staging_table()
+    update_core = core_table()
+
+    # Define dependencies
+    update_staging >> update_core 
 
